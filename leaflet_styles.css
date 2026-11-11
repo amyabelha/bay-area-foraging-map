@@ -36,29 +36,31 @@
 .leaflet-tooltip.sea-label::before { display: none; }
 .hide-sea-labels .leaflet-tooltip.sea-label { display: none; }
 
-/* Legend: a checkbox per layer and per type */
-.legend {
-  background: rgba(255, 255, 255, 0.92);
-  padding: 8px 10px;
-  font: 13px/1.3 "Open Sans", sans-serif;
-  color: #333;
-  max-height: calc(100vh - 40px);
+/* Layers sidebar: hidden off-screen until the ☰ button opens it */
+.layers-sidebar {
+  position: absolute; top: 0; right: 0; bottom: 0; z-index: 1000;
+  width: 260px; max-width: 85%;
+  box-sizing: border-box; padding: 12px 14px 16px;
   overflow-y: auto;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+  font: 13px/1.3 "Open Sans", sans-serif; color: #333;
+  transform: translateX(100%); visibility: hidden;
+  transition: transform 0.2s ease, visibility 0s linear 0.2s;
 }
-.legend-section + .legend-section { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; }
+.layers-sidebar.open { transform: none; visibility: visible; transition: transform 0.2s ease; }
+.sidebar-is-open .leaflet-top.leaflet-right { visibility: hidden; } /* hide the ☰ button while the panel covers it */
+.sidebar-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.sidebar-title { margin: 0; font-size: 16px; font-weight: 600; }
+.sidebar-close { border: none; background: none; font-size: 22px; line-height: 1; cursor: pointer; color: #555; padding: 0 2px; }
+.leaflet-bar a.sidebar-open { font-size: 18px; line-height: 30px; width: 30px; height: 30px; }
+
+/* Checkboxes inside the sidebar */
+.legend-section + .legend-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd; }
 .legend-head { display: block; font-weight: 600; cursor: pointer; }
 .legend-types { margin: 4px 0 0 18px; }
-.legend-type { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 1px 0; }
+.legend-type { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 2px 0; }
 .legend-type img { width: 18px; height: 18px; }
 .legend-off .legend-types { opacity: 0.4; pointer-events: none; }
 .layer-hint { font-size: 11px; font-weight: 400; color: #777; }
 .amenities-visible .layer-hint { display: none; }
-
-/* Collapsible sections: arrow toggles each category's type list */
-.legend-bar { display: flex; align-items: center; gap: 4px; }
-.legend-arrow {
-  width: 18px; margin: 0; padding: 0; border: none; background: none; cursor: pointer;
-  font-size: 13px; color: #555; transition: transform 0.15s;
-}
-.legend-collapsed .legend-arrow { transform: rotate(-90deg); }
-.legend-collapsed .legend-types { display: none; }

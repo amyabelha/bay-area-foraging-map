@@ -11,9 +11,12 @@ const BASEMAP = {
     minZoom: 0,
     maxZoom: 18,
     opacity: 0.5, // QGIS layer opacity 50%
+    // Shown in the bottom-right attribution bar; covers the basemap and all three data layers.
     attribution:
-      'Map tiles by <a href="http://stamen.com">Stamen Design</a> (hosted by Cooper Hewitt), ' +
-      'data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      'Fruit trees: <a href="https://fallingfruit.org/">Falling Fruit</a> &middot; ' +
+      'Sea foraging: compiled from news, angler, and agency sources (incl. CDFW, CDPH) &middot; ' +
+      'Amenities and basemap data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &middot; ' +
+      'Tiles by <a href="http://stamen.com">Stamen Design</a> (hosted by Cooper Hewitt)',
   },
 };
 
@@ -212,59 +215,82 @@ function minZoomLayer(layer, minZoom) {
   return group;
 }
 
-// Legend with a checkbox per layer and per type. sections: [{ title, hint, item }] where item comes
+// Layers sidebar: a ☰ button on the map opens a panel with a checkbox per layer and per type.
+// The panel is completely hidden until opened. sections: [{ title, hint, item }] where item comes
 // from fallingFruitLayer / seaForagingLayer / amenitiesLayer.
-function legendControl(map, sections) {
-  const ctl = L.control({ position: "topright" });
-  ctl.onAdd = () => {
-    const div = L.DomUtil.create("div", "legend leaflet-bar");
-    L.DomEvent.disableClickPropagation(div);
-    L.DomEvent.disableScrollPropagation(div);
+function layersSidebar(map, sections) {
+  const container = map.getContainer();
 
-    // Each section (fruit, sea foraging, amenities) collapses on its own via the arrow.
-    // All sections start open so every category is visible when the map loads.
-    sections.forEach(({ title, hint, item }) => {
-      const sec = L.DomUtil.create("div", "legend-section", div);
-      const bar = L.DomUtil.create("div", "legend-bar", sec);
-      const arrow = L.DomUtil.create("button", "legend-arrow", bar);
-      arrow.type = "button";
-      arrow.textContent = "▾";
-      arrow.title = "Show or hide " + title.toLowerCase() + " types";
-      const setOpen = (open) => {
-        sec.classList.toggle("legend-collapsed", !open);
-        arrow.setAttribute("aria-expanded", String(open));
-      };
-      setOpen(true);
-      arrow.addEventListener("click", () => setOpen(sec.classList.contains("legend-collapsed")));
-      const head = L.DomUtil.create("label", "legend-head", bar);
-      const all = L.DomUtil.create("input", "", head);
-      all.type = "checkbox";
-      all.checked = map.hasLayer(item.layer);
-      head.append(" " + title);
-      if (hint) {
-        const h = L.DomUtil.create("span", "layer-hint", head);
-        h.textContent = " " + hint;
-      }
-      const list = L.DomUtil.create("div", "legend-types", sec);
-      item.types.forEach((t) => {
-        const row = L.DomUtil.create("label", "legend-type", list);
-        const cb = L.DomUtil.create("input", "", row);
-        cb.type = "checkbox";
-        cb.checked = t.on;
-        const img = L.DomUtil.create("img", "", row);
-        img.src = t.icon;
-        img.alt = "";
-        row.append(t.label);
-        cb.addEventListener("change", () => item.setType(t.value, cb.checked));
-      });
-      const sync = () => sec.classList.toggle("legend-off", !all.checked);
-      all.addEventListener("change", () => {
-        all.checked ? map.addLayer(item.layer) : map.removeLayer(item.layer);
-        sync();
-      });
+  // Panel (lives inside the map container, above the map panes)
+  const panel = L.DomUtil.create("aside", "layers-sidebar", container);
+  panel.setAttribute("aria-label", "Layers");
+  panel.setAttribute("aria-hidden", "true");
+  L.DomEvent.disableClickPropagation(panel);
+  L.DomEvent.disableScrollPropagation(panel);
+
+  const top = L.DomUtil.create("div", "sidebar-top", panel);
+  const h = L.DomUtil.create("h2", "sidebar-title", top);
+  h.textContent = "Layers";
+  const close = L.DomUtil.create("button", "sidebar-close", top);
+  close.type = "button";
+  close.setAttribute("aria-label", "Close layers");
+  close.textContent = "×";
+
+  sections.forEach(({ title, hint, item }) => {
+    const sec = L.DomUtil.create("div", "legend-section", panel);
+    const head = L.DomUtil.create("label", "legend-head", sec);
+    const all = L.DomUtil.create("input", "", head);
+    all.type = "checkbox";
+    all.checked = map.hasLayer(item.layer);
+    head.append(" " + title);
+    if (hint) {
+      const hs = L.DomUtil.create("span", "layer-hint", head);
+      hs.textContent = " " + hint;
+    }
+    const list = L.DomUtil.create("div", "legend-types", sec);
+    item.types.forEach((t) => {
+      const row = L.DomUtil.create("label", "legend-type", list);
+      const cb = L.DomUtil.create("input", "", row);
+      cb.type = "checkbox";
+      cb.checked = t.on;
+      const img = L.DomUtil.create("img", "", row);
+      img.src = t.icon;
+      img.alt = "";
+      row.append(t.label);
+      cb.addEventListener("change", () => item.setType(t.value, cb.checked));
+    });
+    const sync = () => sec.classList.toggle("legend-off", !all.checked);
+    all.addEventListener("change", () => {
+      all.checked ? map.addLayer(item.layer) : map.removeLayer(item.layer);
       sync();
     });
-    return div;
+    sync();
+  });
+
+  // ☰ button in the map's top-right corner
+  const ctl = L.control({ position: "topright" });
+  let button;
+  ctl.onAdd = () => {
+    const wrap = L.DomUtil.create("div", "leaflet-bar");
+    button = L.DomUtil.create("a", "sidebar-open", wrap);
+    button.href = "#";
+    button.setAttribute("role", "button");
+    button.setAttribute("aria-label", "Open layers");
+    button.setAttribute("aria-expanded", "false");
+    button.textContent = "☰";
+    L.DomEvent.on(button, "click", (e) => { L.DomEvent.preventDefault(e); setOpen(!panel.classList.contains("open")); });
+    L.DomEvent.disableClickPropagation(wrap);
+    return wrap;
   };
+
+  function setOpen(open) {
+    panel.classList.toggle("open", open);
+    panel.setAttribute("aria-hidden", String(!open));
+    container.classList.toggle("sidebar-is-open", open);
+    if (button) button.setAttribute("aria-expanded", String(open));
+  }
+  close.addEventListener("click", () => setOpen(false));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
+
   return ctl;
 }

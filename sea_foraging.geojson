@@ -1,0 +1,541 @@
+{
+  "type": "FeatureCollection",
+  "name": "sea_foraging",
+  "metadata": {
+    "title": "Bay Area Seafood Foraging Spots",
+    "description": "Recreational seafood foraging locations in Bay Area counties (San Francisco, San Mateo, Marin, Sonoma) with seafood type, license, season and restriction info. Includes no-take MPA reference points.",
+    "compiled": "2026-11-06",
+    "coordinate_note": "Coordinates are approximate (hand-placed at the access point / pier / flat), WGS84 (EPSG:4326). Verify against MPA boundary polygons from CDFW before publishing.",
+    "regulation_note": "Rules summarized from news and angler sources, not official regulation text. Seasons, limits and closures change (e.g. Dungeness season delays, CDPH biotoxin advisories). Check CDFW ocean sport fishing regulations and the CDPH Shellfish Information Line (800-553-4133) before harvesting.",
+    "field_definitions": {
+      "name": "Site name",
+      "seafood_type": "Primary category: crabs | mussels | clams | seaweed | mixed_intertidal | no_take",
+      "species": "Target species at the site",
+      "access_type": "pier | beach | rocky_intertidal | mudflat | jetty | estuary | mpa_reference",
+      "legal_status": "allowed | allowed_with_restrictions | check_boundaries | no_take",
+      "license_required": "Whether a CA sport fishing license is required",
+      "season": "Open season / best timing",
+      "limits": "Bag / size limits",
+      "restrictions": "Key restrictions and safety notes",
+      "source": "One citation per line: Page title | Author/publisher | URL. Listed publisher/site substitutes for an unrecorded individual author; Not recorded means neither is identified. Science Insights is identified from its source URL. Titles and URLs are from the existing reference list, not newly verified page metadata. Original S1-S30 keys remain in metadata.sources. Each citation ends with Accessed November 2026, the access month supplied by the project owner; this is not a new verification of source pages or regulations."
+    },
+    "sources": {
+      "S1": "Pier Fishing in California - Pacifica Pier: https://pierfishing.com/pacifica-pier/3",
+      "S2": "Pier Fishing in California - Dungeness crab: https://www.pierfishing.com/?p=7587",
+      "S3": "Pier Fishing in California - Fort Point Pier: https://www.pierfishing.com/?p=385",
+      "S4": "Pier Fishing in California - Fort Baker Pier: https://pierfishing.com/fort-baker-pier-sausalito/2",
+      "S5": "Pier Fishing in California - Rock crab: https://www.pierfishing.com/?p=7633",
+      "S6": "Pier Fishing in California - Lawson's Landing Pier: https://www.pierfishing.com/?p=1364",
+      "S7": "7x7 - DIY Crabbing: Gear, Piers, and Tips: https://www.7x7.com/amp/diy-crabbing-gear-piers-and-tips-1781424004",
+      "S8": "SF Chronicle - The only way to get local Dungeness crab? Catch them yourself: https://preview-prod.w.sfchronicle.com/food/article/The-only-way-to-get-local-Dungeness-crab-Catch-6847186.php",
+      "S9": "SF Chronicle - Sunday getaway to Torpedo Wharf: https://preview-prod.w.sfchronicle.com/sports/article/Sunday-getaway-to-Torpedo-Wharf-in-San-12368612.php",
+      "S10": "SF Gazetteer - The girls are crabbing: https://sf.gazetteer.co/the-girls-are-crabbing",
+      "S11": "Bay Nature - Packed at Pillar Point: https://baynature.org/2021/01/12/packed-at-pillar-point/",
+      "S12": "Bay Nature - Pillar Point mussels: https://baynature.org/?p=192568",
+      "S13": "CDFW - Montara SMR and Pillar Point SMCA: https://wildlife.ca.gov/Conservation/Marine/MPAs/Montara-Pillar-Point",
+      "S14": "7x7 - How to forage for seaweed and mussels in the San Francisco Bay: https://www.7x7.com/eat-drink/how-forage-seaweed-mussels-san-francisco-bay",
+      "S15": "Marin Magazine - 5 Ways to Enjoy Seaweed: https://marinmagazine.com/food-drink/5-ways-to-enjoy-seaweed-marins-oceanic-ingredient",
+      "S16": "Norcal Fish Reports - Tomales Bay clamming: https://www.norcalfishreports.com/fish_reports/126467/whats-the-scoop-on-razor-clams?.php",
+      "S17": "Logue Cabin - Clamming in Tomales Bay: https://lion-pike.squarespace.com/blog/2019/1/20/-logue-cabinnbsptravelogues-from-the-trail-clamming-with-the-kids-in-tomales-bay",
+      "S18": "Hearts Desire clamming blog: https://mariah-gardner-lrge.squarespace.com/blog/hearts-desire",
+      "S19": "Dillon Beach Fishing blog - Clamming: https://dillonbeachfishing.blogspot.com/2013/03/clamming.html",
+      "S20": "California Sportsman - clamming species and locations: https://issuu.com/mipgroup/docs/cs_8-20_digital-new/s/10841800",
+      "S21": "Where to Go Clamming in California: https://scienceinsights.org/where-to-go-clamming-in-california-top-locations/",
+      "S22": "Sonoma Coast MPA presentation: https://docs.google.com/presentation/d/1QDpwS2Kyhm1Vsgf_lwP-bYOxjgIbMB2A/htmlpresent",
+      "S23": "Best places to go crabbing in California: https://new.marapco.com/PeicUViy/best-places-to-go-crabbing-in-california",
+      "S24": "CDFW - Duxbury Reef SMCA: https://wildlife.ca.gov/Conservation/Marine/MPAs/Duxbury-Reef",
+      "S25": "CDPH - Safety notification SN26-010 (Marin PSP, annual mussel quarantine): https://www.cdph.ca.gov/Programs/OPA/Pages/SN26-010.aspx",
+      "S26": "San Mateo County Health - Shellfish Safety / mussel sampling: https://smchealth.org/general-information/shellfish-safety",
+      "S27": "The Lumberjack - Before You Forage: Mussels: https://thelumberjack.org/tag/forage/",
+      "S28": "iNaturalist Forum - Shellfish legality / CDPH hotline: https://forum.inaturalist.org/t/shellfish-in-socal-good-to-eat-legally-allowed/10781",
+      "S29": "Marin Magazine - Bay Area crabbers: https://wpone.marinmagazine.com/?p=54731",
+      "S30": "Visit Pacifica - Pacifica Pier: https://visitpacifica.com/?p=834"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.4954,
+          37.6326
+        ]
+      },
+      "properties": {
+        "name": "Pacifica Municipal Pier",
+        "seafood_type": "crabs",
+        "species": "Dungeness crab, rock crab (brown, red, yellow)",
+        "access_type": "pier",
+        "legal_status": "allowed",
+        "license_required": "No (public pier)",
+        "season": "Dungeness: roughly November to June/July (opener can be delayed; check CDFW). Rock crab: year-round.",
+        "limits": "Dungeness min 5.75 in carapace; rock crab min 4 in, limit 35",
+        "restrictions": "Ocean-side pier, so Dungeness may be kept. Best at high tide in calm seas.",
+        "source": "Page: Pacifica Pier | Author/publisher: Pier Fishing in California | URL: https://pierfishing.com/pacifica-pier/3 | Accessed November 2026\nPage: Dungeness crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7587 | Accessed November 2026\nPage: The only way to get local Dungeness crab? Catch them yourself | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/food/article/The-only-way-to-get-local-Dungeness-crab-Catch-6847186.php | Accessed November 2026\nPage: Sunday getaway to Torpedo Wharf | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/sports/article/Sunday-getaway-to-Torpedo-Wharf-in-San-12368612.php | Accessed November 2026\nPage: Pacifica Pier | Author/publisher: Visit Pacifica | URL: https://visitpacifica.com/?p=834 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.4673,
+          37.8065
+        ]
+      },
+      "properties": {
+        "name": "Fort Point Pier (Torpedo Wharf)",
+        "seafood_type": "crabs",
+        "species": "Rock crab, red rock crab",
+        "access_type": "pier",
+        "legal_status": "allowed_with_restrictions",
+        "license_required": "No (public pier)",
+        "season": "Rock crab: year-round",
+        "limits": "Rock crab min 4 in, limit 35",
+        "restrictions": "Inside SF Bay: Dungeness may NOT be kept (nursery area).",
+        "source": "Page: Fort Point Pier | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=385 | Accessed November 2026\nPage: Rock crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7633 | Accessed November 2026\nPage: DIY Crabbing: Gear, Piers, and Tips | Author/publisher: 7x7 | URL: https://www.7x7.com/amp/diy-crabbing-gear-piers-and-tips-1781424004 | Accessed November 2026\nPage: Sunday getaway to Torpedo Wharf | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/sports/article/Sunday-getaway-to-Torpedo-Wharf-in-San-12368612.php | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.4235,
+          37.8085
+        ]
+      },
+      "properties": {
+        "name": "San Francisco Municipal Pier (Van Ness)",
+        "seafood_type": "crabs",
+        "species": "Rock crab, red rock crab",
+        "access_type": "pier",
+        "legal_status": "allowed_with_restrictions",
+        "license_required": "No (public pier)",
+        "season": "Rock crab: year-round",
+        "limits": "Rock crab min 4 in, limit 35",
+        "restrictions": "Inside SF Bay: Dungeness may NOT be kept.",
+        "source": "Page: Rock crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7633 | Accessed November 2026\nPage: DIY Crabbing: Gear, Piers, and Tips | Author/publisher: 7x7 | URL: https://www.7x7.com/amp/diy-crabbing-gear-piers-and-tips-1781424004 | Accessed November 2026\nPage: Sunday getaway to Torpedo Wharf | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/sports/article/Sunday-getaway-to-Torpedo-Wharf-in-San-12368612.php | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.3975,
+          37.799
+        ]
+      },
+      "properties": {
+        "name": "Pier 7",
+        "seafood_type": "crabs",
+        "species": "Rock crab",
+        "access_type": "pier",
+        "legal_status": "allowed_with_restrictions",
+        "license_required": "No (public pier)",
+        "season": "Rock crab: year-round",
+        "limits": "Rock crab min 4 in, limit 35",
+        "restrictions": "Inside SF Bay: Dungeness may NOT be kept.",
+        "source": "Page: DIY Crabbing: Gear, Piers, and Tips | Author/publisher: 7x7 | URL: https://www.7x7.com/amp/diy-crabbing-gear-piers-and-tips-1781424004 | Accessed November 2026\nPage: Best places to go crabbing in California | Author/publisher: Not recorded | URL: https://new.marapco.com/PeicUViy/best-places-to-go-crabbing-in-california | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.4836,
+          37.7935
+        ]
+      },
+      "properties": {
+        "name": "Baker Beach",
+        "seafood_type": "crabs",
+        "species": "Dungeness crab",
+        "access_type": "beach",
+        "legal_status": "allowed",
+        "license_required": "Yes",
+        "season": "Dungeness: roughly November to June (check CDFW opener)",
+        "limits": "Dungeness min 5.75 in carapace",
+        "restrictions": "Ocean side of the Golden Gate, so Dungeness allowed. Shore crabbing with snares/hoop nets.",
+        "source": "Page: The only way to get local Dungeness crab? Catch them yourself | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/food/article/The-only-way-to-get-local-Dungeness-crab-Catch-6847186.php | Accessed November 2026\nPage: The girls are crabbing | Author/publisher: SF Gazetteer | URL: https://sf.gazetteer.co/the-girls-are-crabbing | Accessed November 2026\nPage: Bay Area crabbers | Author/publisher: Marin Magazine | URL: https://wpone.marinmagazine.com/?p=54731 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.5107,
+          37.7594
+        ]
+      },
+      "properties": {
+        "name": "Ocean Beach",
+        "seafood_type": "crabs",
+        "species": "Dungeness crab",
+        "access_type": "beach",
+        "legal_status": "allowed",
+        "license_required": "Yes",
+        "season": "Dungeness: roughly November to June (check CDFW opener)",
+        "limits": "Dungeness min 5.75 in carapace",
+        "restrictions": "Strong surf; shore crabbing only in calm conditions.",
+        "source": "Page: The only way to get local Dungeness crab? Catch them yourself | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/food/article/The-only-way-to-get-local-Dungeness-crab-Catch-6847186.php | Accessed November 2026\nPage: The girls are crabbing | Author/publisher: SF Gazetteer | URL: https://sf.gazetteer.co/the-girls-are-crabbing | Accessed November 2026\nPage: Bay Area crabbers | Author/publisher: Marin Magazine | URL: https://wpone.marinmagazine.com/?p=54731 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.5025,
+          37.7148
+        ]
+      },
+      "properties": {
+        "name": "Fort Funston",
+        "seafood_type": "crabs",
+        "species": "Dungeness crab",
+        "access_type": "beach",
+        "legal_status": "allowed",
+        "license_required": "Yes",
+        "season": "Dungeness: roughly November to June (check CDFW opener)",
+        "limits": "Dungeness min 5.75 in carapace",
+        "restrictions": "Steep bluff access; strong surf.",
+        "source": "Page: The only way to get local Dungeness crab? Catch them yourself | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/food/article/The-only-way-to-get-local-Dungeness-crab-Catch-6847186.php | Accessed November 2026\nPage: Bay Area crabbers | Author/publisher: Marin Magazine | URL: https://wpone.marinmagazine.com/?p=54731 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.499,
+          37.496
+        ]
+      },
+      "properties": {
+        "name": "Pillar Point reef",
+        "seafood_type": "mussels",
+        "species": "California sea mussel (primary); also turban snails, sea urchins, crabs",
+        "access_type": "rocky_intertidal",
+        "legal_status": "check_boundaries",
+        "license_required": "Yes",
+        "season": "Mussels: open for consumption Nov 1 to Apr 30; CDPH quarantine May 1 to Oct 31. Best at minus low tides.",
+        "limits": "Mussels 10 lb/day in shell; hands only, no tools",
+        "restrictions": "Within/adjacent to Pillar Point SMCA and next to Montara SMR (no take). Heavily harvested; beds reported depleted. Check CDPH/San Mateo County mussel sampling before eating.",
+        "source": "Page: Packed at Pillar Point | Author/publisher: Bay Nature | URL: https://baynature.org/2021/01/12/packed-at-pillar-point/ | Accessed November 2026\nPage: Pillar Point mussels | Author/publisher: Bay Nature | URL: https://baynature.org/?p=192568 | Accessed November 2026\nPage: Montara SMR and Pillar Point SMCA | Author/publisher: CDFW | URL: https://wildlife.ca.gov/Conservation/Marine/MPAs/Montara-Pillar-Point | Accessed November 2026\nPage: Shellfish Safety / mussel sampling | Author/publisher: San Mateo County Health | URL: https://smchealth.org/general-information/shellfish-safety | Accessed November 2026\nPage: Before You Forage: Mussels | Author/publisher: The Lumberjack | URL: https://thelumberjack.org/tag/forage/ | Accessed November 2026\nPage: The only way to get local Dungeness crab? Catch them yourself | Author/publisher: SF Chronicle | URL: https://preview-prod.w.sfchronicle.com/food/article/The-only-way-to-get-local-Dungeness-crab-Catch-6847186.php | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.515,
+          37.524
+        ]
+      },
+      "properties": {
+        "name": "Montara SMR / Fitzgerald Marine Reserve (NO TAKE)",
+        "seafood_type": "no_take",
+        "species": "None - protected",
+        "access_type": "mpa_reference",
+        "legal_status": "no_take",
+        "license_required": "N/A",
+        "season": "N/A",
+        "limits": "No take",
+        "restrictions": "State Marine Reserve. Tidepool viewing only. Use CDFW MPA polygons for the real boundary.",
+        "source": "Page: Montara SMR and Pillar Point SMCA | Author/publisher: CDFW | URL: https://wildlife.ca.gov/Conservation/Marine/MPAs/Montara-Pillar-Point | Accessed November 2026\nPage: Pillar Point mussels | Author/publisher: Bay Nature | URL: https://baynature.org/?p=192568 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.477,
+          37.8355
+        ]
+      },
+      "properties": {
+        "name": "Fort Baker Pier (Sausalito)",
+        "seafood_type": "crabs",
+        "species": "Rock crab, red rock crab",
+        "access_type": "pier",
+        "legal_status": "allowed_with_restrictions",
+        "license_required": "No (public pier)",
+        "season": "Rock crab: year-round",
+        "limits": "Rock crab min 4 in, limit 35",
+        "restrictions": "Inside SF Bay: Dungeness may NOT be kept.",
+        "source": "Page: Fort Baker Pier | Author/publisher: Pier Fishing in California | URL: https://pierfishing.com/fort-baker-pier-sausalito/2 | Accessed November 2026\nPage: Rock crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7633 | Accessed November 2026\nPage: DIY Crabbing: Gear, Piers, and Tips | Author/publisher: 7x7 | URL: https://www.7x7.com/amp/diy-crabbing-gear-piers-and-tips-1781424004 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.577,
+          37.8605
+        ]
+      },
+      "properties": {
+        "name": "Muir Beach",
+        "seafood_type": "seaweed",
+        "species": "Nori, sea lettuce, other seaweeds",
+        "access_type": "rocky_intertidal",
+        "legal_status": "allowed_with_restrictions",
+        "license_required": "Yes",
+        "season": "Seaweed peak roughly early May to late July",
+        "limits": "Per CDFW marine plant limits",
+        "restrictions": "Low tide only. Within GGNRA - confirm park rules.",
+        "source": "Page: How to forage for seaweed and mussels in the San Francisco Bay | Author/publisher: 7x7 | URL: https://www.7x7.com/eat-drink/how-forage-seaweed-mussels-san-francisco-bay | Accessed November 2026\nPage: 5 Ways to Enjoy Seaweed | Author/publisher: Marin Magazine | URL: https://marinmagazine.com/food-drink/5-ways-to-enjoy-seaweed-marins-oceanic-ingredient | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.5785,
+          37.8598
+        ]
+      },
+      "properties": {
+        "name": "Muir Beach rocks (mussels)",
+        "seafood_type": "mussels",
+        "species": "California sea mussel, bay mussel",
+        "access_type": "rocky_intertidal",
+        "legal_status": "allowed_with_restrictions",
+        "license_required": "Yes",
+        "season": "Open for consumption Nov 1 to Apr 30; CDPH quarantine May 1 to Oct 31. Low tide only.",
+        "limits": "10 lb/day in shell; hands only, no tools; carry a scale",
+        "restrictions": "Check CDPH Marin biotoxin advisories even outside quarantine (PSP warning issued March 2026). Within GGNRA - confirm park rules.",
+        "source": "Page: How to forage for seaweed and mussels in the San Francisco Bay | Author/publisher: 7x7 | URL: https://www.7x7.com/eat-drink/how-forage-seaweed-mussels-san-francisco-bay | Accessed November 2026\nPage: Safety notification SN26-010 (Marin PSP, annual mussel quarantine) | Author/publisher: CDPH | URL: https://www.cdph.ca.gov/Programs/OPA/Pages/SN26-010.aspx | Accessed November 2026\nPage: Before You Forage: Mussels | Author/publisher: The Lumberjack | URL: https://thelumberjack.org/tag/forage/ | Accessed November 2026\nPage: Shellfish legality / CDPH hotline | Author/publisher: iNaturalist Forum | URL: https://forum.inaturalist.org/t/shellfish-in-socal-good-to-eat-legally-allowed/10781 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.702,
+          37.902
+        ]
+      },
+      "properties": {
+        "name": "Duxbury Reef SMCA (Bolinas)",
+        "seafood_type": "no_take",
+        "species": "Restricted - check SMCA rules",
+        "access_type": "mpa_reference",
+        "legal_status": "check_boundaries",
+        "license_required": "Yes, if any take allowed",
+        "season": "N/A",
+        "limits": "Per SMCA regulations",
+        "restrictions": "State Marine Conservation Area; take of most invertebrates restricted. Confirm allowed species in CDFW regulations before encoding as allowed.",
+        "source": "Page: Duxbury Reef SMCA | Author/publisher: CDFW | URL: https://wildlife.ca.gov/Conservation/Marine/MPAs/Duxbury-Reef | Accessed November 2026\nPage: Pillar Point mussels | Author/publisher: Bay Nature | URL: https://baynature.org/?p=192568 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.893,
+          38.131
+        ]
+      },
+      "properties": {
+        "name": "Heart's Desire Beach, Tomales Bay State Park",
+        "seafood_type": "clams",
+        "species": "Littleneck and other clams",
+        "access_type": "beach",
+        "legal_status": "allowed",
+        "license_required": "Yes",
+        "season": "Year-round at minus low tides; check CDPH bivalve advisories",
+        "limits": "Per CDFW clam limits by species; carry a measuring device",
+        "restrictions": "State park entrance fee and closing time.",
+        "source": "Page: Clamming in Tomales Bay | Author/publisher: Logue Cabin | URL: https://lion-pike.squarespace.com/blog/2019/1/20/-logue-cabinnbsptravelogues-from-the-trail-clamming-with-the-kids-in-tomales-bay | Accessed November 2026\nPage: Hearts Desire clamming blog | Author/publisher: Hearts Desire clamming blog | URL: https://mariah-gardner-lrge.squarespace.com/blog/hearts-desire | Accessed November 2026\nPage: clamming species and locations | Author/publisher: California Sportsman | URL: https://issuu.com/mipgroup/docs/cs_8-20_digital-new/s/10841800 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.96,
+          38.228
+        ]
+      },
+      "properties": {
+        "name": "Lawson's Landing clam flats (Clam & Seal islands)",
+        "seafood_type": "clams",
+        "species": "Gaper (horseneck) clam, Washington/butter clam",
+        "access_type": "mudflat",
+        "legal_status": "allowed",
+        "license_required": "Yes",
+        "season": "Year-round at minus low tides; summer weekends busiest",
+        "limits": "Keep the first 10 of each species dug; no size limit for these species",
+        "restrictions": "Best clam island reachable by boat at low tide. Private campground access (fee). Check CDPH bivalve advisories.",
+        "source": "Page: Tomales Bay clamming | Author/publisher: Norcal Fish Reports | URL: https://www.norcalfishreports.com/fish_reports/126467/whats-the-scoop-on-razor-clams?.php | Accessed November 2026\nPage: Clamming | Author/publisher: Dillon Beach Fishing blog | URL: https://dillonbeachfishing.blogspot.com/2013/03/clamming.html | Accessed November 2026\nPage: Where to Go Clamming in California | Author/publisher: Science Insights (scienceinsights.org) | URL: https://scienceinsights.org/where-to-go-clamming-in-california-top-locations/ | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.966,
+          38.238
+        ]
+      },
+      "properties": {
+        "name": "Lawson's Landing Pier",
+        "seafood_type": "crabs",
+        "species": "Dungeness crab, rock crab",
+        "access_type": "pier",
+        "legal_status": "allowed",
+        "license_required": "Yes (private pier)",
+        "season": "Dungeness: roughly November to June (check CDFW opener). Rock crab: year-round.",
+        "limits": "Dungeness min 5.75 in; rock crab min 4 in, limit 35",
+        "restrictions": "Private pier - fishing license required. Crowded on summer weekends.",
+        "source": "Page: Dungeness crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7587 | Accessed November 2026\nPage: Rock crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7633 | Accessed November 2026\nPage: Lawson's Landing Pier | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=1364 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.935,
+          38.045
+        ]
+      },
+      "properties": {
+        "name": "Drakes Estero",
+        "seafood_type": "clams",
+        "species": "Softshell clam, gaper clam, Washington clam, geoduck",
+        "access_type": "estuary",
+        "legal_status": "check_boundaries",
+        "license_required": "Yes",
+        "season": "Minus low tides",
+        "limits": "Per CDFW clam limits by species",
+        "restrictions": "Adjacent to Estero de Limantour SMR (no take). Confirm Drakes Estero MPA rules before encoding as allowed. Mostly boat/kayak access.",
+        "source": "Page: clamming species and locations | Author/publisher: California Sportsman | URL: https://issuu.com/mipgroup/docs/cs_8-20_digital-new/s/10841800 | Accessed November 2026\nPage: Where to Go Clamming in California | Author/publisher: Science Insights (scienceinsights.org) | URL: https://scienceinsights.org/where-to-go-clamming-in-california-top-locations/ | Accessed November 2026\nPage: Sonoma Coast MPA presentation | Author/publisher: Not recorded | URL: https://docs.google.com/presentation/d/1QDpwS2Kyhm1Vsgf_lwP-bYOxjgIbMB2A/htmlpresent | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.92,
+          38.03
+        ]
+      },
+      "properties": {
+        "name": "Estero de Limantour / Point Reyes SMRs (NO TAKE)",
+        "seafood_type": "no_take",
+        "species": "None - protected",
+        "access_type": "mpa_reference",
+        "legal_status": "no_take",
+        "license_required": "N/A",
+        "season": "N/A",
+        "limits": "No take",
+        "restrictions": "State Marine Reserves. Representative point only; use CDFW MPA polygons.",
+        "source": "Page: Sonoma Coast MPA presentation | Author/publisher: Not recorded | URL: https://docs.google.com/presentation/d/1QDpwS2Kyhm1Vsgf_lwP-bYOxjgIbMB2A/htmlpresent | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -123.045,
+          38.315
+        ]
+      },
+      "properties": {
+        "name": "Bodega Harbor mudflats",
+        "seafood_type": "clams",
+        "species": "Gaper (horseneck), butter/Washington, littleneck, softshell clams; geoduck",
+        "access_type": "mudflat",
+        "legal_status": "allowed",
+        "license_required": "Yes",
+        "season": "Minus low tides (-0.5 ft or lower); summer weekends busiest",
+        "limits": "Per CDFW clam limits by species; carry a measuring device",
+        "restrictions": "Check CDPH Sonoma bivalve advisories.",
+        "source": "Page: clamming species and locations | Author/publisher: California Sportsman | URL: https://issuu.com/mipgroup/docs/cs_8-20_digital-new/s/10841800 | Accessed November 2026\nPage: Where to Go Clamming in California | Author/publisher: Science Insights (scienceinsights.org) | URL: https://scienceinsights.org/where-to-go-clamming-in-california-top-locations/ | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -123.055,
+          38.306
+        ]
+      },
+      "properties": {
+        "name": "Doran Park jetty (Bodega Harbor mouth)",
+        "seafood_type": "crabs",
+        "species": "Dungeness crab, rock crab",
+        "access_type": "jetty",
+        "legal_status": "allowed",
+        "license_required": "Yes",
+        "season": "Dungeness: roughly November to June (check CDFW opener). Rock crab: year-round.",
+        "limits": "Dungeness min 5.75 in; rock crab min 4 in, limit 35",
+        "restrictions": "Jetty - license required. Slippery rocks.",
+        "source": "Page: Best places to go crabbing in California | Author/publisher: Not recorded | URL: https://new.marapco.com/PeicUViy/best-places-to-go-crabbing-in-california | Accessed November 2026\nPage: Rock crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7633 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -123.058,
+          38.329
+        ]
+      },
+      "properties": {
+        "name": "Spud Point Marina",
+        "seafood_type": "crabs",
+        "species": "Dungeness crab, rock crab",
+        "access_type": "pier",
+        "legal_status": "allowed",
+        "license_required": "Check (marina dock)",
+        "season": "Dungeness: roughly November to June (check CDFW opener). Rock crab: year-round.",
+        "limits": "Dungeness min 5.75 in; rock crab min 4 in, limit 35",
+        "restrictions": "Busy on crab opener weekends.",
+        "source": "Page: Lawson's Landing Pier | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=1364 | Accessed November 2026\nPage: Rock crab | Author/publisher: Pier Fishing in California | URL: https://www.pierfishing.com/?p=7633 | Accessed November 2026"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -123.072,
+          38.303
+        ]
+      },
+      "properties": {
+        "name": "Bodega Head SMR (NO TAKE)",
+        "seafood_type": "no_take",
+        "species": "None - protected",
+        "access_type": "mpa_reference",
+        "legal_status": "no_take",
+        "license_required": "N/A",
+        "season": "N/A",
+        "limits": "No take",
+        "restrictions": "State Marine Reserve. Representative point only; use CDFW MPA polygons.",
+        "source": "Page: Sonoma Coast MPA presentation | Author/publisher: Not recorded | URL: https://docs.google.com/presentation/d/1QDpwS2Kyhm1Vsgf_lwP-bYOxjgIbMB2A/htmlpresent | Accessed November 2026"
+      }
+    }
+  ]
+}

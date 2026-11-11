@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bay Area Foraging Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="leaflet_styles.css">
+  <style>html, body, #map { height: 100%; margin: 0; }</style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="leaflet_styles.js"></script>
+  <script>
+    // Leaflet always draws in Web Mercator (EPSG:3857), the same projection as the watercolor tiles.
+    // Start centered on Oakland.
+    const map = L.map("map").setView([37.8044, -122.2712], 13);
+    L.tileLayer(BASEMAP.url, BASEMAP.options).addTo(map);
+
+    const load = (url) => fetch(url).then((r) => r.json());
+
+    Promise.all([
+      load("falling_fruit.geojson"),
+      load("sea_foraging.geojson"),
+      load("amenities.geojson"),
+    ]).then(([fruit, sea, amenities]) => {
+      const fruitLayer = fallingFruitLayer(fruit);
+      const seaLayer = seaForagingLayer(sea, map);
+      const amenityLayer = amenitiesLayer(amenities);
+
+      // Added in QGIS draw order: fruit, then sea foraging, then amenities on top.
+      fruitLayer.layer.addTo(map);
+      seaLayer.layer.addTo(map);
+      amenityLayer.layer.addTo(map);
+
+      legendControl(map, [
+        { title: "Falling fruit", item: fruitLayer },
+        { title: "Sea foraging", item: seaLayer },
+        { title: "Amenities", hint: "(zoom in to see)", item: amenityLayer },
+      ]).addTo(map);
+
+      // Hide the amenities hint once you're zoomed in far enough to see them.
+      const hint = () =>
+        map.getContainer().classList.toggle("amenities-visible", map.getZoom() >= AMENITIES.minZoom);
+      map.on("zoomend", hint);
+      hint();
+    });
+  </script>
+</body>
+</html>

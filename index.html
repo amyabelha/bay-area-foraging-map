@@ -19,6 +19,7 @@
     // Start centered on Oakland.
     const map = L.map("map").setView([37.8044, -122.2712], 13);
     L.tileLayer(BASEMAP.url, BASEMAP.options).addTo(map);
+    map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>'); // drop the flag icon to save space
 
     const load = (url) => fetch(url).then((r) => r.json());
 

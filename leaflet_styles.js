@@ -13,10 +13,10 @@ const BASEMAP = {
     opacity: 0.5, // QGIS layer opacity 50%
     // Shown in the bottom-right attribution bar; covers the basemap and all three data layers.
     attribution:
-      'Fruit trees: <a href="https://fallingfruit.org/">Falling Fruit</a> &middot; ' +
-      'Sea foraging: compiled from news, angler, and agency sources (incl. CDFW, CDPH) &middot; ' +
-      'Amenities and basemap data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &middot; ' +
-      'Tiles by <a href="http://stamen.com">Stamen Design</a> (hosted by Cooper Hewitt)',
+      'Fruit: <a href="https://fallingfruit.org/">Falling Fruit</a> &middot; ' +
+      'Sea foraging: compiled from news, angler, and agency sources &middot; ' +
+      'Amenities &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &middot; ' +
+      'Tiles: <a href="http://stamen.com">Stamen</a>',
   },
 };
 

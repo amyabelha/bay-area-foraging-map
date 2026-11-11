@@ -31,6 +31,7 @@ const BOUNDARY_STYLE = {
 const AMENITIES = {
   field: "amenity_type",
   minZoom: 16,
+  onByDefault: ["little_free_libraries"],
   size: pt(14), // 19 px
   icons: {
     bathrooms: "icons/amenities/bathroom.svg",
@@ -43,7 +44,8 @@ const AMENITIES = {
 };
 
 // ---------- Falling fruit (categorized on fruit_type, clustered) ----------
-// QGIS: point cluster renderer, 40 pt tolerance. "plum" and NULL are switched off.
+// QGIS: point cluster renderer, 40 pt tolerance. Plum is offered in the legend (QGIS: 50% opacity).
+// Only the types in onByDefault start checked. NULL values are never shown.
 const FALLING_FRUIT = {
   field: "fruit_type",
   clusterRadius: pt(40), // 53 px
@@ -57,8 +59,9 @@ const FALLING_FRUIT = {
     other: { url: "icons/falling_fruit/fruit.svg", size: pt(16) },
     peach: { url: "icons/falling_fruit/peach.svg", size: pt(14) },
     persimmon: { url: "icons/falling_fruit/persimmon.svg", size: pt(16) },
-    // plum: hidden in QGIS (would be icons/falling_fruit/plum.svg, 14 pt, 50% opacity)
+    plum: { url: "icons/falling_fruit/plum.svg", size: pt(14), opacity: 0.5 }, // QGIS: 14 pt, 50% opacity
   },
+  onByDefault: ["persimmon"],
   cluster: {
     url: "icons/falling_fruit/basket.svg",
     size: pt(20), // 27 px
@@ -83,6 +86,7 @@ const SEA_FORAGING = {
   },
   // QGIS label: "name" \n "season" \n "limits", Open Sans 10 pt, visible at 1:15000 or closer => zoom 15+
   labelMinZoom: 15,
+  onByDefault: ["crabs"],
 };
 
 // ---------- Helpers ----------
@@ -116,7 +120,7 @@ function markersByType(data, cfg, iconFor, decorate) {
     const icon = byType[v] && iconFor(v);
     if (!icon) return;
     const [lng, lat] = f.geometry.coordinates;
-    const m = L.marker([lat, lng], { icon });
+    const m = L.marker([lat, lng], { icon, opacity: (cfg.icons[v] && cfg.icons[v].opacity) || 1 });
     m.feature = f;
     if (decorate) decorate(m, f.properties);
     byType[v].push(m);
@@ -125,12 +129,15 @@ function markersByType(data, cfg, iconFor, decorate) {
 }
 
 // Wraps a container layer plus its per-type markers so the legend can switch each type on and off.
-function toggleableLayer(container, byType, iconUrl, add, remove) {
-  const on = new Set(Object.keys(byType));
-  Object.values(byType).forEach((ms) => add(ms));
+// Only the types listed in onByDefault start checked (all types if the list is missing).
+function toggleableLayer(container, byType, iconUrl, add, remove, onByDefault) {
+  const on = new Set(Object.keys(byType).filter((v) => !onByDefault || onByDefault.includes(v)));
+  on.forEach((v) => add(byType[v]));
   return {
     layer: container,
-    types: Object.keys(byType).map((v) => ({ value: v, label: typeLabel(v), icon: iconUrl(v), count: byType[v].length })),
+    types: Object.keys(byType).map((v) => ({
+      value: v, label: typeLabel(v), icon: iconUrl(v), count: byType[v].length, on: on.has(v),
+    })),
     setType(v, visible) {
       if (visible === on.has(v)) return;
       visible ? (on.add(v), add(byType[v])) : (on.delete(v), remove(byType[v]));
@@ -157,7 +164,7 @@ function fallingFruitLayer(data) {
   const byType = markersByType(data, FALLING_FRUIT, (v) => svgIcon(FALLING_FRUIT.icons[v].url, FALLING_FRUIT.icons[v].size));
   const group = clusterGroup(FALLING_FRUIT, "cluster-fruit");
   return toggleableLayer(group, byType, (v) => FALLING_FRUIT.icons[v].url,
-    (ms) => group.addLayers(ms), (ms) => group.removeLayers(ms));
+    (ms) => group.addLayers(ms), (ms) => group.removeLayers(ms), FALLING_FRUIT.onByDefault);
 }
 
 function seaForagingLayer(data, map) {
@@ -179,14 +186,15 @@ function seaForagingLayer(data, map) {
   toggleLabels();
 
   return toggleableLayer(group, byType, (v) => SEA_FORAGING.icons[v],
-    (ms) => group.addLayers(ms), (ms) => group.removeLayers(ms));
+    (ms) => group.addLayers(ms), (ms) => group.removeLayers(ms), SEA_FORAGING.onByDefault);
 }
 
 function amenitiesLayer(data) {
   const byType = markersByType(data, AMENITIES, (v) => svgIcon(AMENITIES.icons[v], AMENITIES.size));
   const inner = L.layerGroup();
   return toggleableLayer(minZoomLayer(inner, AMENITIES.minZoom), byType, (v) => AMENITIES.icons[v],
-    (ms) => ms.forEach((m) => inner.addLayer(m)), (ms) => ms.forEach((m) => inner.removeLayer(m)));
+    (ms) => ms.forEach((m) => inner.addLayer(m)), (ms) => ms.forEach((m) => inner.removeLayer(m)),
+    AMENITIES.onByDefault);
 }
 
 // A layer that only draws at minZoom and closer (amenities: QGIS max scale 1:7500 => zoom 16+).
@@ -212,9 +220,23 @@ function legendControl(map, sections) {
     const div = L.DomUtil.create("div", "legend leaflet-bar");
     L.DomEvent.disableClickPropagation(div);
     L.DomEvent.disableScrollPropagation(div);
+
+    // Each section (fruit, sea foraging, amenities) collapses on its own via the arrow.
+    // All sections start open so every category is visible when the map loads.
     sections.forEach(({ title, hint, item }) => {
       const sec = L.DomUtil.create("div", "legend-section", div);
-      const head = L.DomUtil.create("label", "legend-head", sec);
+      const bar = L.DomUtil.create("div", "legend-bar", sec);
+      const arrow = L.DomUtil.create("button", "legend-arrow", bar);
+      arrow.type = "button";
+      arrow.textContent = "▾";
+      arrow.title = "Show or hide " + title.toLowerCase() + " types";
+      const setOpen = (open) => {
+        sec.classList.toggle("legend-collapsed", !open);
+        arrow.setAttribute("aria-expanded", String(open));
+      };
+      setOpen(true);
+      arrow.addEventListener("click", () => setOpen(sec.classList.contains("legend-collapsed")));
+      const head = L.DomUtil.create("label", "legend-head", bar);
       const all = L.DomUtil.create("input", "", head);
       all.type = "checkbox";
       all.checked = map.hasLayer(item.layer);
@@ -228,7 +250,7 @@ function legendControl(map, sections) {
         const row = L.DomUtil.create("label", "legend-type", list);
         const cb = L.DomUtil.create("input", "", row);
         cb.type = "checkbox";
-        cb.checked = true;
+        cb.checked = t.on;
         const img = L.DomUtil.create("img", "", row);
         img.src = t.icon;
         img.alt = "";

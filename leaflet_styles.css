@@ -53,3 +53,12 @@
 .legend-off .legend-types { opacity: 0.4; pointer-events: none; }
 .layer-hint { font-size: 11px; font-weight: 400; color: #777; }
 .amenities-visible .layer-hint { display: none; }
+
+/* Collapsible sections: arrow toggles each category's type list */
+.legend-bar { display: flex; align-items: center; gap: 4px; }
+.legend-arrow {
+  width: 18px; margin: 0; padding: 0; border: none; background: none; cursor: pointer;
+  font-size: 13px; color: #555; transition: transform 0.15s;
+}
+.legend-collapsed .legend-arrow { transform: rotate(-90deg); }
+.legend-collapsed .legend-types { display: none; }

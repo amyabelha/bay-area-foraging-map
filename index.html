@@ -6,14 +6,14 @@
   <title>Bay Area Foraging Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-  <link rel="stylesheet" href="leaflet_styles.css?v=3">
+  <link rel="stylesheet" href="leaflet_styles.css?v=11">
   <style>html, body, #map { height: 100%; margin: 0; }</style>
 </head>
 <body>
   <div id="map"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="leaflet_styles.js?v=3"></script>
+  <script src="leaflet_styles.js?v=11"></script>
   <script>
     // Leaflet always draws in Web Mercator (EPSG:3857), the same projection as the watercolor tiles.
     // Start centered on Oakland.
@@ -29,7 +29,7 @@
       load("amenities.geojson"),
     ]).then(([fruit, sea, amenities]) => {
       const fruitLayer = fallingFruitLayer(fruit);
-      const seaLayer = seaForagingLayer(sea, map);
+      const seaLayer = seaForagingLayer(sea);
       const amenityLayer = amenitiesLayer(amenities);
 
       // Added in QGIS draw order: fruit, then sea foraging, then amenities on top.

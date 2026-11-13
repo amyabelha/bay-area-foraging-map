@@ -10,6 +10,7 @@ const BASEMAP = {
   options: {
     minZoom: 0,
     maxZoom: 18,
+    maxNativeZoom: 17, // the watercolor tiles stop at zoom 17; zoom 18 stretches them instead of going grey
     opacity: 0.5, // QGIS layer opacity 50%
     // Shown in the bottom-right attribution bar; covers the basemap and all three data layers.
     attribution:
@@ -71,7 +72,8 @@ const FALLING_FRUIT = {
   },
 };
 
-// ---------- Sea foraging (categorized on seafood_type, clustered, labeled) ----------
+// ---------- Sea foraging (categorized on seafood_type, clustered) ----------
+// The QGIS labels (name, season, limits at zoom 15+) are left out; the popup shows that information.
 const SEA_FORAGING = {
   field: "seafood_type",
   clusterRadius: pt(40),
@@ -87,8 +89,6 @@ const SEA_FORAGING = {
     url: "icons/sea_foraging/fishing.svg",
     size: pt(20), // 27 px
   },
-  // QGIS label: "name" \n "season" \n "limits", Open Sans 10 pt, visible at 1:15000 or closer => zoom 15+
-  labelMinZoom: 15,
   onByDefault: ["crabs"],
 };
 
@@ -163,37 +163,186 @@ function clusterGroup(cfg, className) {
   });
 }
 
+// ---------- Popups ----------
+// Each popup is a bold title, a small subtitle, then label/value rows. Rows with no value are skipped.
+
+// Make text from the data safe to put in HTML, and keep its line breaks.
+function esc(text) {
+  const div = document.createElement("div");
+  div.textContent = text == null ? "" : String(text);
+  return div.innerHTML.replace(/\n/g, "<br>");
+}
+
+const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ") : s);
+
+// rows: [[label, value], ...]; values are plain text and get escaped. extraHtml is added as-is.
+function popupHtml(title, subtitle, rows, extraHtml = "") {
+  const body = rows
+    .filter(([, v]) => v != null && v !== "")
+    .map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`)
+    .join("");
+  return (
+    `<div class="popup-title">${esc(title)}</div>` +
+    // Skip the subtitle when it would just repeat the title (e.g. "Persimmon" / "Persimmon").
+    (subtitle && String(subtitle).toLowerCase() !== String(title).toLowerCase()
+      ? `<div class="popup-subtitle">${esc(subtitle)}</div>` : "") +
+    (body ? `<table class="popup-table">${body}</table>` : "") +
+    extraHtml
+  );
+}
+
+const POPUP_OPTIONS = {
+  maxWidth: 320, minWidth: 200, maxHeight: 360, className: "map-popup",
+  // Keep popups below the zoom and ☰ buttons, so their close button isn't hidden.
+  autoPanPaddingTopLeft: [10, 60],
+  autoPanPaddingBottomRight: [10, 30],
+};
+
+function fruitPopup(p) {
+  const link =
+    `<div class="popup-source">${esc(p.source)} &middot; ` +
+    `<a href="https://fallingfruit.org/locations/${encodeURIComponent(p.falling_fruit_id)}" target="_blank" rel="noopener">` +
+    `View on Falling Fruit</a></div>`;
+  return popupHtml(p.name, typeLabel(p.fruit_type), [
+    ["Access", p.access],
+    ["Season", p.season],
+    ["Comment", p.description],
+    ["Added by", p.author],
+  ], link);
+}
+
+const LEGAL_STATUS = {
+  allowed: "Allowed",
+  allowed_with_restrictions: "Allowed with restrictions",
+  check_boundaries: "Check MPA boundaries",
+  no_take: "No take",
+};
+const ACCESS_TYPE = { mpa_reference: "Marine protected area", rocky_intertidal: "Rocky intertidal" };
+
+// source holds one line per reference: "Page: … | Author/publisher: … | URL: … | Accessed …"
+function seaSources(source) {
+  const items = (source || "").split("\n").filter(Boolean).map((line) => {
+    const part = (key) => (line.match(new RegExp(key + ": ([^|]*)")) || [])[1];
+    const page = (part("Page") || line).trim();
+    const who = (part("Author/publisher") || "").trim();
+    const url = (part("URL") || "").trim();
+    const label = esc(page) + (who && !/^Not /.test(who) ? ` <span>(${esc(who)})</span>` : "");
+    return /^https?:\/\//.test(url)
+      ? `<li><a href="${esc(url)}" target="_blank" rel="noopener">${label}</a></li>`
+      : `<li>${label}</li>`;
+  });
+  return items.length
+    ? `<details class="popup-sources"><summary>Sources (${items.length})</summary><ul>${items.join("")}</ul></details>`
+    : "";
+}
+
+function seaPopup(p) {
+  return popupHtml(p.name, `${typeLabel(p.seafood_type)} · ${ACCESS_TYPE[p.access_type] || capitalize(p.access_type)}`, [
+    ["Species", p.species],
+    ["Status", LEGAL_STATUS[p.legal_status] || capitalize(p.legal_status)],
+    ["License", p.license_required],
+    ["Season", p.season],
+    ["Limits", p.limits],
+    ["Rules", p.restrictions],
+  ], seaSources(p.source));
+}
+
+const AMENITY_NAMES = {
+  bathrooms: "Bathroom",
+  bike_repair: "Bike repair station",
+  drinking_water: "Drinking water",
+  give_boxes: "Give box",
+  little_free_libraries: "Little free library",
+  showers: "Shower",
+};
+
+// Friendlier labels for the OSM keys in notes. Any key not listed uses its last part
+// ("Service / bicycle / pump" -> "Pump").
+const NOTE_LABELS = {
+  "Toilets / disposal": "Toilet type",
+  "Toilets / handwashing": "Handwashing",
+  "Toilets / position": "Toilet position",
+  "Toilets / paper supplied": "Toilet paper",
+  "Toilets / menstrual products": "Menstrual products",
+  "Public bookcase / type": "Bookcase type",
+  "Drinking water / bottle": "Bottle filler",
+  "Bottle": "Bottle filler",
+  "Service / bicycle / stand": "Repair stand",
+  "Dog": "Dogs allowed",
+  "Handwashing / soap": "Soap",
+  "Stateofrepair": "Condition",
+};
+// Internal or duplicate keys that aren't useful to a map reader.
+const NOTE_HIDDEN = /^(Amenity type|Brand|Ref|Level \/ ref|Wetap|Lastcheck|Operator \/ (short|website)|Airside)\b/;
+
+// notes looks like "Amenity type: toilets; Fee: no; Wheelchair: yes". Split it into rows.
+// Only split on "; " followed by "Key: ", so a "; " inside a value stays put.
+// The "Addr / …" parts are combined into one Address row at the top.
+function amenityNotes(notes) {
+  const pairs = (notes || "")
+    .split(/; (?=[A-Z][^:;]{0,40}: )/)
+    .map((s) => s.match(/^([^:]+): ([\s\S]*)$/))
+    .filter(Boolean)
+    .map(([, k, v]) => [k.trim(), v.trim()]);
+  const addr = Object.fromEntries(pairs.filter(([k]) => k.startsWith("Addr / ")).map(([k, v]) => [k.slice(7), v]));
+  const street = [addr.housenumber, addr.street].filter(Boolean).join(" ") + (addr.unit ? ` #${addr.unit}` : "");
+  const address = [street, addr.city].filter(Boolean).join(", ");
+  const rows = pairs
+    .filter(([k]) => !k.startsWith("Addr / ") && !NOTE_HIDDEN.test(k))
+    .map(([k, v]) => [NOTE_LABELS[k] || capitalize(k.split(" / ").pop()), capitalize(v)]);
+  return address ? [["Address", address], ...rows] : rows;
+}
+
+function amenityPopup(p) {
+  const kind = AMENITY_NAMES[p.amenity_type] || typeLabel(p.amenity_type);
+  return popupHtml(p.name || kind, p.name ? kind : null, [
+    ["Access", capitalize(p.access)],
+    ["Indoor", capitalize(p.indoor)],
+    ["Hours", p.opening_hours],
+    ...amenityNotes(p.notes),
+  ], `<div class="popup-source">${esc(p.source)}</div>`);
+}
+
+// When a collapsible list (e.g. Sources) in an open popup is expanded, re-measure the popup
+// (so maxHeight scrolling applies) and pan the map so it stays on screen.
+// popup.update() would rebuild the content and collapse the list again, so call the layout steps directly.
+function refitOnToggle(e) {
+  const popup = e.popup;
+  popup.getElement().querySelectorAll("details").forEach((d) =>
+    d.addEventListener("toggle", () => {
+      popup._updateLayout();
+      popup._updatePosition();
+      popup._adjustPan();
+    }));
+}
+
+function bindFeaturePopup(m, makeHtml) {
+  m.bindPopup(makeHtml, POPUP_OPTIONS);
+  m.on("popupopen", refitOnToggle);
+}
+
+const bindPopup = (makeHtml) => (m, p) => bindFeaturePopup(m, () => makeHtml(p));
+
 function fallingFruitLayer(data) {
-  const byType = markersByType(data, FALLING_FRUIT, (v) => svgIcon(FALLING_FRUIT.icons[v].url, FALLING_FRUIT.icons[v].size));
+  const byType = markersByType(data, FALLING_FRUIT, (v) => svgIcon(FALLING_FRUIT.icons[v].url, FALLING_FRUIT.icons[v].size),
+    bindPopup(fruitPopup));
   const group = clusterGroup(FALLING_FRUIT, "cluster-fruit");
   return toggleableLayer(group, byType, (v) => FALLING_FRUIT.icons[v].url,
     (ms) => group.addLayers(ms), (ms) => group.removeLayers(ms), FALLING_FRUIT.onByDefault);
 }
 
-function seaForagingLayer(data, map) {
-  const byType = markersByType(data, SEA_FORAGING, (v) => svgIcon(SEA_FORAGING.icons[v], SEA_FORAGING.size), (m, p) => {
-    const text = [p.name, p.season, p.limits].filter(Boolean).join("<br>");
-    m.bindTooltip(text, {
-      permanent: true,
-      direction: "right",
-      offset: [SEA_FORAGING.size / 2, 0],
-      className: "sea-label",
-    });
-  });
+function seaForagingLayer(data) {
+  const byType = markersByType(data, SEA_FORAGING, (v) => svgIcon(SEA_FORAGING.icons[v], SEA_FORAGING.size),
+    bindPopup(seaPopup));
   const group = clusterGroup(SEA_FORAGING, "cluster-sea");
-
-  // Show labels only at zoom 15+ (QGIS max scale 1:15000).
-  const toggleLabels = () =>
-    map.getContainer().classList.toggle("hide-sea-labels", map.getZoom() < SEA_FORAGING.labelMinZoom);
-  map.on("zoomend", toggleLabels);
-  toggleLabels();
 
   return toggleableLayer(group, byType, (v) => SEA_FORAGING.icons[v],
     (ms) => group.addLayers(ms), (ms) => group.removeLayers(ms), SEA_FORAGING.onByDefault);
 }
 
 function amenitiesLayer(data) {
-  const byType = markersByType(data, AMENITIES, (v) => svgIcon(AMENITIES.icons[v], AMENITIES.size));
+  const byType = markersByType(data, AMENITIES, (v) => svgIcon(AMENITIES.icons[v], AMENITIES.size),
+    bindPopup(amenityPopup));
   const inner = L.layerGroup();
   return toggleableLayer(minZoomLayer(inner, AMENITIES.minZoom), byType, (v) => AMENITIES.icons[v],
     (ms) => ms.forEach((m) => inner.addLayer(m)), (ms) => ms.forEach((m) => inner.removeLayer(m)),

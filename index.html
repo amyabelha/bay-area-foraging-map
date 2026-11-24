@@ -1,0 +1,467 @@
+<!--
+Author:  Amy Chang
+Date:    Nov 22, 2026
+Class:   GEOG585
+Project: Final Project - Bay Area Foraging Map
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Bay Area Foraging Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet.markercluster plugin, used to cluster the falling fruit icons -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <style>
+      body { font-family: sans-serif; margin: 10px; }
+      #title { font-size: 20px; font-weight: normal; margin: 0 0 8px; }
+      #mapid { height: 600px; width: 100%; position: relative; }
+      #summaryLabel { margin-top: 10px; font-size: 10pt; }
+      #summaryLabel table { border-collapse: collapse; }
+      #summaryLabel td { border-bottom: 1px solid #ddd; padding: 4px 8px; vertical-align: top; }
+      #summaryLabel td.key { font-weight: bold; white-space: nowrap; }
+
+      /* Highlight drawn as rings with box-shadow, which sits outside the icon */
+      .selected-icon { background-color: #B9F6B0; border-radius: 50%; box-shadow: 0 0 0 4px #B9F6B0, 0 0 0 5px #00A000; }
+
+      /* Layers sidebar: hidden off-screen until the ☰ button opens it */
+      #sidebar {
+        position: absolute; top: 0; right: 0; bottom: 0; z-index: 1000;
+        width: 260px; max-width: 85%;
+        box-sizing: border-box; padding: 12px 14px 16px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+        font-size: 13px; line-height: 1.3; color: #333;
+        transform: translateX(100%); visibility: hidden;
+        transition: transform 0.2s ease, visibility 0s linear 0.2s;
+      }
+      #sidebar.open { transform: none; visibility: visible; transition: transform 0.2s ease; }
+      .sidebar-is-open .leaflet-top.leaflet-right { visibility: hidden; } /* hide the ☰ button while the panel covers it */
+      .sidebar-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+      .sidebar-title { margin: 0; font-size: 16px; }
+      #sidebarClose { border: none; background: none; font-size: 22px; line-height: 1; cursor: pointer; color: #555; }
+      .leaflet-bar a.sidebar-open { font-size: 18px; line-height: 30px; width: 30px; height: 30px; }
+      .parent-section + .parent-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd; }
+      .parent-type { display: block; font-weight: bold; cursor: pointer; }
+      .type-list { margin: 4px 0 0 18px; }
+      .type-row { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 2px 0; }
+      .type-row img { width: 18px; height: 18px; }
+      .parent-off .type-list { opacity: 0.4; pointer-events: none; }
+
+      /* Falling fruit cluster: basket icon with the point count on top */
+      .cluster-fruit { background: none; border: none; }
+      .cluster-fruit img { display: block; }
+      .cluster-fruit span {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        display: flex; align-items: center; justify-content: center;
+        font: bold 11px sans-serif;
+        color: rgb(255, 228, 176);
+        -webkit-text-stroke: 0.15px rgb(102, 33, 19);
+      }
+      /* Sources button (bottom left): collapsed until "Sources" is clicked */
+      .sources-control { background: rgba(255, 255, 255, 0.9); padding: 2px 6px; border-radius: 4px; font-size: 11px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); }
+      .map-sources summary { cursor: pointer; }
+      .map-sources .sources-body { max-height: 320px; width: 340px; max-width: 70vw; overflow-y: auto; padding: 4px 2px; font-size: 11px; line-height: 1.35; }
+      .map-sources h4 { margin: 8px 0 2px; font-size: 11px; }
+      .map-sources ul { margin: 0; padding-left: 16px; }
+      .map-sources li { margin: 1px 0; }
+      .map-sources .note { color: #666; margin: 2px 0; }
+      .layer-hint, .type-count { font-size: 11px; font-weight: normal; color: #777; }
+    </style>
+
+    <script type="text/javascript">
+
+var map;
+
+function init() {
+  // create map and set center and zoom level (Oakland)
+  map = new L.map('mapid');
+  map.setView([37.8044, -122.2712], 13);
+
+  // create and add the Stamen Watercolor basemap (hosted by Cooper Hewitt), at 50% opacity so the data layers stand out
+  var tiles = L.tileLayer('https://watercolormaps.collection.cooperhewitt.org/tile/watercolor/{z}/{x}/{y}.jpg', {
+    maxNativeZoom: 17,
+    opacity: 0.5,
+    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, hosted by <a href="https://watercolormaps.collection.cooperhewitt.org/">Cooper Hewitt</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, under ODbL.'
+  });
+  tiles.addTo(map);
+
+  // ---------- Sources for this map ----------
+  // small "Sources" button in the bottom-left corner
+  var seaSources = [
+    'Pier Fishing in California: <a href="https://pierfishing.com/pacifica-pier/3" target="_blank">Pacifica Pier</a>, <a href="https://www.pierfishing.com/?p=7587" target="_blank">Dungeness crab</a>, <a href="https://www.pierfishing.com/?p=7633" target="_blank">Rock crab</a>, <a href="https://www.pierfishing.com/?p=385" target="_blank">Fort Point Pier</a>, <a href="https://pierfishing.com/fort-baker-pier-sausalito/2" target="_blank">Fort Baker Pier</a>, <a href="https://www.pierfishing.com/?p=1364" target="_blank">Lawson&#x27;s Landing Pier</a>',
+    'SF Chronicle: <a href="https://preview-prod.w.sfchronicle.com/food/article/The-only-way-to-get-local-Dungeness-crab-Catch-6847186.php" target="_blank">Catch your own Dungeness crab</a>, <a href="https://preview-prod.w.sfchronicle.com/sports/article/Sunday-getaway-to-Torpedo-Wharf-in-San-12368612.php" target="_blank">Torpedo Wharf</a>',
+    '7x7: <a href="https://www.7x7.com/amp/diy-crabbing-gear-piers-and-tips-1781424004" target="_blank">DIY crabbing</a>, <a href="https://www.7x7.com/eat-drink/how-forage-seaweed-mussels-san-francisco-bay" target="_blank">Foraging seaweed and mussels</a>',
+    'Marin Magazine: <a href="https://wpone.marinmagazine.com/?p=54731" target="_blank">Bay Area crabbers</a>, <a href="https://marinmagazine.com/food-drink/5-ways-to-enjoy-seaweed-marins-oceanic-ingredient" target="_blank">Seaweed</a>',
+    'Bay Nature: <a href="https://baynature.org/2021/01/12/packed-at-pillar-point/" target="_blank">Packed at Pillar Point</a>, <a href="https://baynature.org/?p=192568" target="_blank">Pillar Point mussels</a>',
+    'SF Gazetteer: <a href="https://sf.gazetteer.co/the-girls-are-crabbing" target="_blank">The girls are crabbing</a>',
+    'Visit Pacifica: <a href="https://visitpacifica.com/?p=834" target="_blank">Pacifica Pier</a>',
+    'The Lumberjack: <a href="https://thelumberjack.org/tag/forage/" target="_blank">Before you forage: mussels</a>',
+    'Tomales Bay clamming: <a href="https://www.norcalfishreports.com/fish_reports/126467/whats-the-scoop-on-razor-clams?.php" target="_blank">Norcal Fish Reports</a>, <a href="https://lion-pike.squarespace.com/blog/2019/1/20/-logue-cabinnbsptravelogues-from-the-trail-clamming-with-the-kids-in-tomales-bay" target="_blank">Logue Cabin</a>, <a href="https://mariah-gardner-lrge.squarespace.com/blog/hearts-desire" target="_blank">Heart&#x27;s Desire blog</a>, <a href="https://dillonbeachfishing.blogspot.com/2013/03/clamming.html" target="_blank">Dillon Beach Fishing</a>, <a href="https://issuu.com/mipgroup/docs/cs_8-20_digital-new/s/10841800" target="_blank">California Sportsman</a>',
+    'CDFW marine protected areas: <a href="https://wildlife.ca.gov/Conservation/Marine/MPAs/Montara-Pillar-Point" target="_blank">Montara and Pillar Point</a>, <a href="https://wildlife.ca.gov/Conservation/Marine/MPAs/Duxbury-Reef" target="_blank">Duxbury Reef</a>, <a href="https://docs.google.com/presentation/d/1QDpwS2Kyhm1Vsgf_lwP-bYOxjgIbMB2A/htmlpresent" target="_blank">Sonoma Coast MPA presentation</a>',
+    'Shellfish safety: <a href="https://www.cdph.ca.gov/Programs/OPA/Pages/SN26-010.aspx" target="_blank">CDPH SN26-010</a>, <a href="https://smchealth.org/general-information/shellfish-safety" target="_blank">San Mateo County Health</a>'
+  ];
+
+  var iconSources = [
+    '<b>Fruit:</b> <a href="https://www.svgrepo.com/svg/297047/apple" target="_blank">apple</a> (CC0), <a href="https://www.svgrepo.com/svg/396887/lemon" target="_blank">citrus</a> (Google Noto Emoji, Apache 2.0), <a href="https://www.svgrepo.com/svg/108276/fig" target="_blank">fig</a> (CC0), <a href="https://www.svgrepo.com/svg/384969/grapes-fruit-emoj-symbol-food" target="_blank">loquat</a> (mgraphstudio, CC BY 4.0), <a href="https://www.svgrepo.com/svg/400291/grapes" target="_blank">mulberry</a> (mgraphstudio, CC BY 4.0), <a href="https://www.svgrepo.com/svg/475207/nut" target="_blank">nut</a> (Nanda Pratama, PD), <a href="https://www.svgrepo.com/svg/406857/peach" target="_blank">peach</a> (Twemoji, MIT), <a href="https://www.svgrepo.com/svg/318252/food-fruit-vegetable-vegetarian-organic-persimmon" target="_blank">persimmon</a> (utawimisbah, CC BY 4.0), <a href="https://www.svgrepo.com/svg/484910/plum" target="_blank">plum</a> (flat-icon-design, PD), <a href="https://www.svgrepo.com/svg/86129/fruit" target="_blank">other</a> (CC0), <a href="https://www.svgrepo.com/svg/404808/basket" target="_blank">basket</a> (Twemoji, MIT)',
+    '<b>Seafood:</b> <a href="https://www.svgrepo.com/svg/311982/crab" target="_blank">crab</a> (OpenMoji, CC BY-SA 4.0), <a href="https://www.svgrepo.com/svg/99838/clam" target="_blank">clam</a> (CC0), <a href="https://www.svgrepo.com/svg/35782/mussel" target="_blank">mussel</a> (CC0), <a href="https://www.svgrepo.com/svg/482086/wakame-and-kelp" target="_blank">seaweed</a> (Icooon Mono, PD), <a href="https://www.svgrepo.com/svg/511150/stop-sign" target="_blank">no take</a> (Coolicons, CC BY 4.0)',
+    '<b>Amenities:</b> <a href="https://www.svgrepo.com/svg/244218/bathroom-restroom" target="_blank">bathrooms</a> (CC0), <a href="https://www.svgrepo.com/svg/533406/book" target="_blank">book</a> (Dazzle UI, CC BY 4.0), <a href="https://www.svgrepo.com/svg/533049/gift" target="_blank">gift</a> (Dazzle UI, CC BY 4.0), <a href="https://www.svgrepo.com/svg/431999/tool" target="_blank">tool</a> (MingCute, Apache 2.0), <a href="https://www.svgrepo.com/svg/488378/shower" target="_blank">shower</a> (Neuicons, MIT), <a href="https://www.svgrepo.com/svg/511203/water-drop" target="_blank">water</a> (Coolicons, CC BY 4.0)'
+  ];
+
+  function sourceList(items) {
+    return '<ul><li>' + items.join('</li><li>') + '</li></ul>';
+  }
+
+  var sourcesHtml =
+    '<details class="map-sources"><summary>Sources</summary><div class="sources-body">' +
+    '<h4>Falling fruit</h4>' +
+    sourceList(['<a href="https://fallingfruit.org/" target="_blank">Falling Fruit</a> (fallingfruit.org), accessed November 2026; cleaned and filtered for this map']) +
+    '<h4>Amenities</h4>' +
+    sourceList(['&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>, queried with <a href="https://overpass-turbo.eu/" target="_blank">Overpass Turbo</a>, accessed November 2026']) +
+    '<h4>Bay Area boundary (used to clip the data)</h4>' +
+    sourceList(['County boundaries from the Metropolitan Transportation Commission (MTC)']) +
+    '<h4>Sea foraging (articles and agency pages, accessed November 2026)</h4>' +
+    '<p class="note">Rules are summarized from these sources, not official regulation text. Check CDFW regulations and CDPH shellfish advisories (800-553-4133) before harvesting.</p>' +
+    sourceList(seaSources) +
+    '<h4>Icons (via SVG Repo; recolored, resized or redrawn for this map)</h4>' +
+    sourceList(iconSources) +
+    '</div></details>';
+
+  // a plain control 
+  var cntlSources = L.control({ position: 'bottomleft' });
+  cntlSources.onAdd = function() {
+    var div = L.DomUtil.create('div', 'sources-control');
+    div.innerHTML = sourcesHtml;
+    L.DomEvent.disableClickPropagation(div);  // clicking the list doesn't count as a click on the map
+    L.DomEvent.disableScrollPropagation(div); // scrolling the list doesn't zoom the map
+    return div;
+  };
+  cntlSources.addTo(map);
+
+  var fruitLayer;
+  var seafoodLayer;
+  var amenityLayer;
+
+  var selection;
+
+  var typesOffAtStart = ['plum'];   // types that start hidden (unchecked in the sidebar)
+
+  // custom SVG icons
+  var fruitIcons = {
+    apple: 'icons/falling_fruit/apple.svg',
+    citrus: 'icons/falling_fruit/citrus.svg',
+    fig: 'icons/falling_fruit/fig.svg',
+    loquat: 'icons/falling_fruit/loquat.svg',
+    mulberry: 'icons/falling_fruit/mulberry.svg',
+    nut: 'icons/falling_fruit/nut.svg',
+    peach: 'icons/falling_fruit/peach.svg',
+    persimmon: 'icons/falling_fruit/persimmon.svg',
+    plum: 'icons/falling_fruit/plum.svg',
+    other: 'icons/falling_fruit/fruit.svg'
+  };
+
+  var seafoodIcons = {
+    clams: 'icons/sea_foraging/clam.svg',
+    crabs: 'icons/sea_foraging/crab.svg',
+    mussels: 'icons/sea_foraging/mussel.svg',
+    seaweed: 'icons/sea_foraging/seaweed.svg',
+    no_take: 'icons/sea_foraging/no_take.svg'
+  };
+
+  var amenityIcons = {
+    bathrooms: 'icons/amenities/bathroom.svg',
+    bike_repair: 'icons/amenities/tool.svg',
+    drinking_water: 'icons/amenities/water.svg',
+    give_boxes: 'icons/amenities/gift.svg',
+    little_free_libraries: 'icons/amenities/book.svg',
+    showers: 'icons/amenities/shower.svg'
+  };
+
+  // create the icons (unselected and selected) for one set of SVGs
+  // the selected icon is the same SVG with a light green highlight and a thin green ring
+  function makeIcons(urls, size) {
+    var icons = {};
+    for (var type in urls) {
+      icons[type] = {
+        normal: L.icon({ iconUrl: urls[type], iconSize: [size, size] }),
+        selected: L.icon({ iconUrl: urls[type], iconSize: [size, size], className: 'selected-icon' })
+      };
+    }
+    return icons;
+  }
+
+  var fruitIconSet = makeIcons(fruitIcons, 21);
+  var seafoodIconSet = makeIcons(seafoodIcons, 24);
+  var amenityIconSet = makeIcons(amenityIcons, 19);
+
+  // sidebar labels cleaned up 
+  function typeLabel(type) {
+    return type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ');
+  }
+
+  // build one thematic layer
+  // plain layer group or a marker cluster group when cluster options are given
+  // markers are also sorted by type (layer.types) so the sidebar can turn single types on and off
+  function makeLayer(data, typeField, iconSet, cluster) {
+    var layer;
+    if (cluster) {
+      // falling fruit: nearby icons merge into a basket
+      layer = L.markerClusterGroup({
+        maxClusterRadius: cluster.radius,
+        showCoverageOnHover: false,
+        iconCreateFunction: function(c) {
+          return L.divIcon({
+            className: 'cluster-fruit',
+            html: '<img src="' + cluster.iconUrl + '" width="' + cluster.size + '" height="' + cluster.size + '">' +
+                  '<span>' + c.getChildCount() + '</span>',
+            iconSize: [cluster.size, cluster.size]
+          });
+        }
+      });
+    } else {
+      layer = L.layerGroup();
+    }
+    layer.types = {}; // type value -> { markers: [...], icon }
+
+    L.geoJSON(data, {
+      // skip features whose type has no icon (e.g. a null type)
+      filter: function(feature) {
+        return iconSet[feature.properties[typeField]] || iconSet.other;
+      },
+      pointToLayer: function(feature, latlng) {
+        var type = iconSet[feature.properties[typeField]] ? feature.properties[typeField] : 'other';
+        var marker = L.marker(latlng, { icon: iconSet[type].normal });
+        marker.icons = iconSet[type]; // remember this feature's icons so it can be reset later
+        marker.parentLayer = layer;   // and which thematic layer it belongs to
+
+        if (!layer.types[type]) {
+          layer.types[type] = { markers: [], icon: iconSet[type].normal.options.iconUrl };
+        }
+        layer.types[type].markers.push(marker);
+        return marker;
+      },
+      onEachFeature: function(feature, marker) {
+        marker.on({
+          click: function(e) {
+            if (selection) {
+              resetStyles();
+            }
+
+            e.target.setIcon(e.target.icons.selected);
+            e.target.setZIndexOffset(1000); // draw the selected icon above its neighbors
+            selection = e.target;
+
+            // insert HTML with the feature attributes
+            buildSummaryLabel(feature);
+
+            L.DomEvent.stopPropagation(e); // stop click event from being propagated further
+          }
+        });
+      }
+    });
+
+    // start with every type shown, except those in typesOffAtStart
+    for (var type in layer.types) {
+      setTypeVisible(layer, type, typesOffAtStart.indexOf(type) === -1);
+    }
+    return layer;
+  }
+
+  // show or hide all markers of one type within a layer
+  function setTypeVisible(layer, type, visible) {
+    var markers = layer.types[type].markers;
+    if (layer.addLayers) {
+      // marker cluster group: add/remove in one batch (much faster than one at a time)
+      if (visible) layer.addLayers(markers);
+      else layer.removeLayers(markers);
+    } else {
+      markers.forEach(function(m) {
+        if (visible) layer.addLayer(m);
+        else layer.removeLayer(m);
+      });
+    }
+  }
+
+  // load the three GeoJSON files from the same folder 
+  Promise.all([
+    fetch('falling_fruit.geojson').then(function(r) { return r.json(); }),
+    fetch('sea_foraging.geojson').then(function(r) { return r.json(); }),
+    fetch('amenities.geojson').then(function(r) { return r.json(); })
+  ]).then(function(results) {
+    // build the three thematic layers
+    fruitLayer = makeLayer(results[0], 'fruit_type', fruitIconSet,
+      { radius: 53, iconUrl: 'icons/falling_fruit/basket.svg', size: 27 }); 
+    seafoodLayer = makeLayer(results[1], 'seafood_type', seafoodIconSet);
+    amenityLayer = makeLayer(results[2], 'amenity_type', amenityIconSet);
+
+    // which layers the user has switched on in the sidebar (all on to start)
+    var layerOn = { fruit: true, seafood: true, amenities: true };
+
+    // add or remove each layer to match its sidebar checkbox
+    var AMENITIES_MIN_ZOOM = 15;
+
+    function updateLayers() {
+      setLayerVisible(fruitLayer, layerOn.fruit);
+      setLayerVisible(seafoodLayer, layerOn.seafood);
+      setLayerVisible(amenityLayer, layerOn.amenities && map.getZoom() >= AMENITIES_MIN_ZOOM);
+      document.getElementById('amenitiesHint').style.display = map.getZoom() >= AMENITIES_MIN_ZOOM ? 'none' : 'inline';
+    }
+
+    function setLayerVisible(layer, visible) {
+      if (visible && !map.hasLayer(layer)) map.addLayer(layer);
+      if (!visible && map.hasLayer(layer)) map.removeLayer(layer);
+    }
+
+    map.on('zoomend', updateLayers);
+
+    // ---------- Layers sidebar: a ☰ button opens a panel with a checkbox per layer and per type ----------
+    var sidebar = document.getElementById('sidebar');
+    L.DomEvent.disableClickPropagation(sidebar); // clicks in the sidebar don't count as clicks on the map
+    L.DomEvent.disableScrollPropagation(sidebar);
+
+    function addSidebarSection(title, key, layer, hint) {
+      var section = document.createElement('div');
+      section.className = 'parent-section';
+
+      // parent type: the layer's own checkbox (e.g. Falling fruit) turns the whole layer on/off
+      var parentRow = document.createElement('label');
+      parentRow.className = 'parent-type';
+      parentRow.innerHTML = '<input type="checkbox" checked> ' + title + (hint || '');
+      section.appendChild(parentRow);
+      parentRow.querySelector('input').addEventListener('change', function(e) {
+        layerOn[key] = e.target.checked;
+        section.classList.toggle('parent-off', !e.target.checked);
+        clearSelectionIfHidden();
+        updateLayers();
+      });
+
+      // types: one checkbox per type within the layer (e.g. Plum), with its icon and feature count
+      var typeList = document.createElement('div');
+      typeList.className = 'type-list';
+      Object.keys(layer.types).sort(function(a, b) {
+        if (a === 'other') return 1;
+        if (b === 'other') return -1;
+        return typeLabel(a).localeCompare(typeLabel(b));
+      }).forEach(function(type) {
+        var typeGroup = layer.types[type];
+        var typeRow = document.createElement('label');
+        typeRow.className = 'type-row';
+        typeRow.innerHTML = '<input type="checkbox"' + (typesOffAtStart.indexOf(type) === -1 ? ' checked' : '') +
+          '><img src="' + typeGroup.icon + '" alt=""> ' +
+          typeLabel(type) + ' <span class="type-count">(' + typeGroup.markers.length + ')</span>';
+        typeRow.querySelector('input').addEventListener('change', function(e) {
+          setTypeVisible(layer, type, e.target.checked);
+          clearSelectionIfHidden();
+        });
+        typeList.appendChild(typeRow);
+      });
+      section.appendChild(typeList);
+      sidebar.appendChild(section);
+    }
+
+    addSidebarSection('Falling fruit', 'fruit', fruitLayer);
+    addSidebarSection('Sea foraging', 'seafood', seafoodLayer);
+    addSidebarSection('Amenities', 'amenities', amenityLayer,
+      ' <span id="amenitiesHint" class="layer-hint">(zoom in to see)</span>');
+
+    // ☰ button in the map's top-right corner opens and closes the sidebar
+    var sidebarButton = L.control({ position: 'topright' });
+    sidebarButton.onAdd = function() {
+      var div = L.DomUtil.create('div', 'leaflet-bar');
+      div.innerHTML = '<a href="#" class="sidebar-open" role="button" aria-label="Open layers">&#9776;</a>';
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.on(div.firstChild, 'click', function(e) {
+        L.DomEvent.preventDefault(e);
+        setSidebarOpen(true);
+      });
+      return div;
+    };
+    sidebarButton.addTo(map);
+
+    function setSidebarOpen(open) {
+      sidebar.classList.toggle('open', open);
+      document.getElementById('mapid').classList.toggle('sidebar-is-open', open);
+    }
+    document.getElementById('sidebarClose').addEventListener('click', function() { setSidebarOpen(false); });
+
+    updateLayers();
+  }).catch(function(err) {
+    // show a message instead of a silently empty map (e.g. when the page is opened from disk)
+    document.getElementById('summaryLabel').innerHTML =
+      '<p>Could not load the map data. </p>';
+    console.error(err);
+  });
+
+  // if the selected feature was just hidden (its layer or type switched off, or amenities zoomed out), clear the selection.
+  // A fruit marker merged into a cluster is still in its layer, so it stays selected and shows highlighted again when you zoom back in.
+  function clearSelectionIfHidden() {
+    if (selection && !(map.hasLayer(selection.parentLayer) && selection.parentLayer.hasLayer(selection))) {
+      resetStyles();
+      selection = null;
+      document.getElementById('summaryLabel').innerHTML = defaultLabel;
+    }
+  }
+  map.on('zoomend', clearSelectionIfHidden);
+
+  var defaultLabel = '<p>Click a feature or amenity on the map to get more information.</p>';
+
+  // handle clicks on the map that didn't hit a feature
+  map.addEventListener('click', function(e) {
+    if (selection) {
+      resetStyles();
+      selection = null;
+      document.getElementById('summaryLabel').innerHTML = defaultLabel;
+    }
+  });
+
+  // function to set the old selected feature back to its original icon. Used when the map or a feature is clicked.
+  function resetStyles() {
+    selection.setIcon(selection.icons.normal);
+    selection.setZIndexOffset(0);
+  }
+
+  // make attribute text safe to insert as HTML, keeping line breaks
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
+
+  // function to build the HTML for the summary label from all of the selected feature's (non-empty) attributes
+  function buildSummaryLabel(currentFeature) {
+    var props = currentFeature.properties;
+    var featureName = props.name || "Unnamed feature";
+    var html = '<p style="font-size:11.5pt"><b>' + escapeHtml(featureName) + '</b></p><table>';
+
+    for (var key in props) {
+      if (key === 'name' || props[key] === null || props[key] === '') continue;
+      html += '<tr><td class="key">' + escapeHtml(key.replace(/_/g, ' ')) + '</td><td>' + escapeHtml(props[key]) + '</td></tr>';
+    }
+
+    html += '</table>';
+    document.getElementById('summaryLabel').innerHTML = html;
+  }
+
+}
+
+    </script>
+  </head>
+  <body onload="init()">
+    <h1 id="title">Bay Area Foraging Map</h1>
+
+    <div id="mapid">
+      <aside id="sidebar" aria-label="Layers">
+        <div class="sidebar-top">
+          <h2 class="sidebar-title">Layers</h2>
+          <button id="sidebarClose" type="button" aria-label="Close layers">&times;</button>
+        </div>
+      </aside>
+    </div>
+    <div id="summaryLabel">
+      <p>Click a feature or amenity on the map to get more information.</p>
+    </div>
+  </body>
+</html>
